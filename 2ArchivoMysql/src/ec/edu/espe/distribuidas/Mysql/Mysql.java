@@ -11,6 +11,7 @@ import java.awt.event.ActionListener;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JButton;
@@ -83,7 +84,7 @@ public class Mysql extends javax.swing.JFrame implements ActionListener {
                     //nombre del archivo
                     this.setTitle(nombre);
 
-                    //En el editor de texto colocamos su contenido
+                    //En el editor de texto colocamos su tiempo
                     txp.setText(contenido);
 
                 } catch (Exception exp) {
@@ -98,29 +99,27 @@ public class Mysql extends javax.swing.JFrame implements ActionListener {
         System.out.println();
         FileReader fr = null;
         BufferedReader br = null;
-        //Cadena de texto donde se guardara el contenido del archivo
-        String contenido = "";
+        //Cadena de texto donde se guardara el tiempo del archivo
+        String tiempo = "";
         String query = "";
-        tiempoInicial = System.currentTimeMillis();
+        ArrayList<String> querys = new ArrayList<>();
+        
         try {
             //ruta puede ser de tipo String o tipo File
             fr = new FileReader(ruta);
             br = new BufferedReader(fr);
-            
-            Conexion db = new Conexion();
-            db.MySQLConnection("root", "joelram5635726", "TercerParcial");
-            
+
             String linea;
             String[] separada;
 
-            //Obtenemos el contenido del archivo linea por linea
+            //Obtenemos el tiempo del archivo linea por linea
             while ((linea = br.readLine()) != null) {
                 separada = new String[4];
                 separada = linea.split("\\|");
                 query = "INSERT INTO persona VALUES('" + separada[0] + "','" + separada[1] + "','" + separada[2] + "','" + separada[3] + "');";
-                db.insertData(query);
+                querys.add(query);
             }
-            db.closeConnection();
+
         } catch (Exception e) {
         } //finally se utiliza para que si todo ocurre correctamente o si ocurre 
         //algun error se cierre el archivo que anteriormente abrimos
@@ -131,9 +130,25 @@ public class Mysql extends javax.swing.JFrame implements ActionListener {
                 Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+        
+        Conexion db = new Conexion();
+        try {
+            db.MySQLConnection("root", "joelram5635726", "TercerParcial");
+        } catch (Exception ex) {
+            Logger.getLogger(Mysql.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        tiempoInicial = System.currentTimeMillis();
+
+        for(int i = 0; i<querys.size();i++)
+        {
+            db.insertData(querys.get(i).toString());
+        }
+        
+        db.closeConnection();
         tiempoFinal = System.currentTimeMillis();
-        contenido = "Tiempo de ejecucion: " + (tiempoFinal-tiempoInicial) + " milisegundos";
-        return contenido;
+        tiempo = "Tiempo de ejecucion: " + (tiempoFinal - tiempoInicial) + " milisegundos";
+        return tiempo;
     }
 
     @SuppressWarnings("unchecked")
